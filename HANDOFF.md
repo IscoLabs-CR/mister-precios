@@ -13,7 +13,24 @@ hay que tocar si el proyecto cambia de manos.
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v3 · Supabase
-(Postgres + Auth + Storage) · Gemini 2.5 Flash · Resend · desplegado en Vercel.
+(Postgres + Auth + Storage) · Gemini 2.5 Flash · Resend · pensado para Vercel.
+
+## Estado actual
+
+**Nunca se desplegó.** Todo lo que sigue funciona y se probó en desarrollo contra
+la base real, pero no hay hosting: no existe proyecto en Vercel ni URL pública.
+
+Dos consecuencias:
+
+- **El cron nunca corrió.** El recordatorio de 24h y la verificación de 72h están
+  escritos y el endpoint está protegido, pero nunca se ejecutaron programados.
+  Es la única parte del flujo sin probar en condiciones reales — conviene
+  verificarla en el primer deploy y no descubrirla con el lead de un cliente.
+- **La base está vacía a propósito.** Se borraron los leads y vendedores de
+  prueba. Antes de recibir el primer lead real hay que cargar los vendedores.
+
+Lo que sí está montado y funcionando es el correo (Resend para enviar, reenvío
+externo para recibir), sobre el dominio del autor original.
 
 ---
 
@@ -171,8 +188,10 @@ rediseño mejor que las clases de maquetado.
 El código es la parte fácil. Esto es lo que hay que mover o rehacer:
 
 **Cuentas.** El proyecto de Supabase se puede transferir entre organizaciones
-desde el dashboard. Vercel, Resend, el reenvío de correo y la API key de Gemini
-no se transfieren: el nuevo dueño abre las suyas.
+desde el dashboard; con la base vacía suele ser más simple que el nuevo dueño
+cree el suyo y corra las migraciones. Resend, el reenvío de correo y la API key
+de Gemini no se transfieren: el nuevo dueño abre las suyas. De Vercel no hay nada
+que mover — nunca se desplegó.
 
 **Rotar todas las llaves.** `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`,
 `GEMINI_API_KEY`, `CRON_SECRET`. Pasar las llaves existentes no es transferir, es
