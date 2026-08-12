@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-paper text-ink antialiased;
+  }
+
+  /* Accesibilidad: el foco siempre visible, también en móvil con teclado. */
+  :focus-visible {
+    outline: 2px solid theme("colors.brand.DEFAULT");
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.14em] text-brand;
+  }
+
+  .etiqueta {
+    @apply mb-1.5 block text-sm font-medium text-ink;
+  }
+
+  .ayuda {
+    @apply mt-1.5 block text-xs leading-relaxed text-muted;
+  }
+
+  /* 16px de fuente es deliberado: menos que eso hace que iOS Safari
+     haga zoom automático al enfocar el campo. */
+  .campo {
+    @apply w-full rounded-xl border border-line bg-white px-3.5 py-3 text-base
+           text-ink placeholder:text-muted/70
+           focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25;
+  }
+
+  .campo-error {
+    @apply border-alerta focus:border-alerta focus:ring-alerta/25;
+  }
+
+  .mensaje-error {
+    @apply mt-1.5 block text-xs font-medium text-alerta;
+  }
+
+  /* Píldora, 14px/600 y 20px de padding lateral: el botón de misterprecios.com.
+     Lo único que no se copia es la altura — la de ellos queda en ~41px y acá se
+     mantiene el mínimo de 48px, que es el área de toque cómoda en móvil y lo que
+     hace que el botón case con la altura de `.campo`. */
+  .btn {
+    @apply inline-flex min-h-[3rem] w-full items-center justify-center gap-2.5
+           rounded-full px-5 py-3 text-sm font-semibold
+           transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-primario {
+    @apply btn bg-brand text-white hover:bg-brand-deep;
+  }
+
+  .opcion {
+    @apply flex cursor-pointer items-start gap-3 rounded-xl border border-line
+           bg-white p-3.5 transition-colors hover:border-brand/50
+           has-[:checked]:border-brand has-[:checked]:bg-brand-tint;
+  }
+}
