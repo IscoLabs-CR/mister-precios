@@ -118,18 +118,29 @@ cumple igual, solo que la alerta puede salir hasta un día más tarde.
 
 ## Correo
 
-Enviar y recibir son dos servicios distintos sobre el mismo dominio, y es fácil
-confundirlos:
+**Verificar un dominio en Resend habilita ENVIAR, nunca recibir.** Es el error
+que más caro sale acá, porque todas las plantillas le piden al vendedor
+"respondé este correo": si la dirección del remitente no recibe, cada cotización
+que responde un vendedor rebota y el flujo se corta en el paso 5.
 
-- **Enviar: Resend.** Verificar el dominio deja los registros SPF/MX en un
-  subdominio (`send.<dominio>`) y el DKIM en `resend._domainkey`. Sin esos
-  registros la app deja de poder enviar.
-- **Recibir: reenvío externo (hoy ImprovMX, plan gratis).** MX en la raíz del
-  dominio, reenviando la casilla de cotizaciones a un Gmail. Verificar el dominio
-  en Resend habilita **enviar, nunca recibir**: por eso hace falta este segundo
-  servicio.
+Por eso hay tres variables y no una:
 
-Como el SPF de Resend no está en la raíz, un SPF en la raíz no colisiona con él.
+| Variable | Qué es | Dónde tiene que estar |
+|---|---|---|
+| `MAIL_FROM` | Remitente | Dominio o subdominio **verificado en Resend** |
+| `MAIL_REPLY_TO` | A dónde contestan los vendedores | Casilla real, en un dominio **con MX** |
+| `MAIL_CC_INTERNO` | Copia interna de control | Cualquier casilla del equipo |
+
+El montaje típico es un subdominio dedicado al envío (`envios.<dominio>` o
+similar) verificado en Resend, y el `MAIL_REPLY_TO` apuntando a una casilla del
+dominio raíz, que es la que ya recibe correo. Un subdominio verificado en Resend
+**no** tiene MX: si no hay `MAIL_REPLY_TO`, las respuestas rebotan de inmediato.
+
+Resend pone su SPF y su MX de return-path en un subdominio propio, y el DKIM en
+`resend._domainkey`. Eso significa que **la verificación no toca el SPF de la
+raíz** — importante si el dominio ya tiene correo de empresa andando: fusionar o
+pisar ese SPF les tumba el correo a todos. Solo hay que agregar los registros que
+da Resend, nunca editar los que ya están.
 
 Al diagnosticar, consultar el nameserver autoritativo en vez de un resolver
 público: evita el caché negativo y distingue "no está configurado" de "todavía no

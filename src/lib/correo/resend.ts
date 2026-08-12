@@ -48,6 +48,19 @@ export async function enviarCorreo(correo: Correo): Promise<ResultadoEnvio> {
     return { ok: false, motivo: "Faltan RESEND_API_KEY o MAIL_FROM." };
   }
 
+  /**
+   * Enviar y recibir son dos capacidades distintas y no tienen por qué vivir en
+   * la misma dirección: verificar un dominio en Resend habilita ENVIAR, nunca
+   * recibir. Cuando el `MAIL_FROM` está en un subdominio dedicado al envío, ese
+   * subdominio no tiene MX, y todas las plantillas le piden al vendedor
+   * "respondé este correo" — sin Reply-To, cada respuesta rebota y el flujo se
+   * corta justo donde llega la cotización.
+   *
+   * Por eso esta variable apunta a una casilla que SÍ recibe, normalmente en el
+   * dominio raíz. Es opcional: si el `MAIL_FROM` ya recibe, se deja vacía.
+   */
+  const replyTo = process.env.MAIL_REPLY_TO?.trim();
+
   try {
     const respuesta = await fetch(ENDPOINT, {
       method: "POST",
@@ -61,6 +74,7 @@ export async function enviarCorreo(correo: Correo): Promise<ResultadoEnvio> {
         ...(correo.copia
           ? { cc: Array.isArray(correo.copia) ? correo.copia : [correo.copia] }
           : {}),
+        ...(replyTo ? { reply_to: replyTo } : {}),
         subject: correo.asunto,
         html: correo.html,
         text: correo.texto,
