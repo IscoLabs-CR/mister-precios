@@ -13,7 +13,7 @@ hay que tocar si el proyecto cambia de manos.
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v3 · Supabase
-(Postgres + Auth + Storage) · Gemini 2.5 Flash · Resend · pensado para Vercel.
+(Postgres + Auth + Storage) · Gemini 3.7 Flash · Resend · pensado para Vercel.
 
 ## Estado actual
 
@@ -29,8 +29,8 @@ Dos consecuencias:
 - **La base está vacía a propósito.** Se borraron los leads y vendedores de
   prueba. Antes de recibir el primer lead real hay que cargar los vendedores.
 
-Lo que sí está montado y funcionando es el correo (Resend para enviar, reenvío
-externo para recibir), sobre el dominio del autor original.
+Lo que sí está montado y funcionando es el correo (Resend para enviar, un buzón
+real de SiteGround para recibir), sobre el dominio del dueño de la marca.
 
 ---
 
@@ -163,9 +163,9 @@ la tabla `cotizaciones` existen para ese flujo (hoy quedan nulas).
 
 Dos advertencias para quien lo retome:
 
-1. El plan gratis de ImprovMX **no incluye email webhooks**, así que el camino
-   más directo está cerrado. Las alternativas son leer el Gmail por IMAP, usar la
-   recepción de Resend, o pagar el plan.
+1. `cotizaciones@misterprecios.com` es un **buzón real en SiteGround**, no un
+   reenvío, así que se puede leer por IMAP. Ese es hoy el camino más directo; la
+   otra alternativa es la recepción entrante de Resend.
 2. La respuesta del vendedor **cita el correo original**, que incluye nuestro
    "precio a vencer". Hay que recortar la cita antes de que la IA lea el texto, o
    va a extraer nuestro propio número como si fuera la cotización del vendedor.
@@ -198,26 +198,32 @@ rediseño mejor que las clases de maquetado.
 
 El código es la parte fácil. Esto es lo que hay que mover o rehacer:
 
-**Cuentas.** El proyecto de Supabase se puede transferir entre organizaciones
-desde el dashboard; con la base vacía suele ser más simple que el nuevo dueño
-cree el suyo y corra las migraciones. Resend, el reenvío de correo y la API key
-de Gemini no se transfieren: el nuevo dueño abre las suyas. De Vercel no hay nada
-que mover — nunca se desplegó.
+**Toda la capa de correo y dominio ya es del dueño de la marca** y no se mueve:
+el dominio `misterprecios.com`, el WordPress que la app scrapea, el DNS y los
+buzones (todo en una misma cuenta de SiteGround), y la cuenta de Resend con el
+subdominio de envío verificado ahí. No se abre cuenta nueva, no se reverifica
+nada y no hay que rehacer el correo sobre otro dominio.
 
-**Rotar todas las llaves.** `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`,
-`GEMINI_API_KEY`, `CRON_SECRET`. Pasar las llaves existentes no es transferir, es
-compartir: mientras el dueño anterior también las tenga, sigue con acceso total a
-los datos de los clientes.
+**Cuentas que sí se mueven.** El proyecto de Supabase se puede transferir entre
+organizaciones desde el dashboard; con la base vacía suele ser más simple que el
+nuevo dueño cree el suyo y corra las migraciones. La API key de Gemini no se
+transfiere: el nuevo dueño abre la suya. De Vercel no hay nada que mover — nunca
+se desplegó.
 
-**Sacar la identidad del dueño anterior.** Se esconde en cuatro lugares:
+**Rotar todas las llaves.** `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY`,
+`CRON_SECRET` porque cambian de cuenta, y `RESEND_API_KEY` aunque la cuenta no
+cambie. Pasar las llaves existentes no es transferir, es compartir: mientras el
+dueño anterior también las tenga, sigue con acceso total a los datos de los
+clientes. Mismo criterio para las contraseñas de los buzones de SiteGround si se
+compartieron.
+
+**Sacar la identidad del dueño anterior.** Se esconde en tres lugares:
 
 - `MAIL_CC_INTERNO` — recibe copia de **cada** correo que sale a un vendedor.
+  Tiene que ser una casilla del dueño de la marca, no del operador.
 - La tabla `vendedores` — revisar que ningún `email` siga apuntando a una casilla
   del dueño anterior, o esos leads no llegan al vendedor real.
 - Los usuarios de Supabase Auth — dar de alta a los nuevos y **borrar los viejos**.
-- El dominio, en `MAIL_FROM` y `NEXT_PUBLIC_SITE_URL`. Si el dominio no se va con
-  el proyecto, hay que rehacer toda la capa de correo sobre el dominio nuevo:
-  verificarlo en Resend y recrear el alias de recepción.
 
 **Los datos de los clientes.** La tabla `leads` tiene nombre, correo y teléfono de
 personas reales. Desde el formulario hay una casilla obligatoria donde el cliente

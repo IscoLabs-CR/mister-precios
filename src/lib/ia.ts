@@ -6,10 +6,20 @@ import type { Lead, Moneda, ProductoNormalizado } from "./tipos";
 import { MAX_LARGO_RESUMEN, esMoneda, normalizarTexto } from "./validacion";
 
 /**
- * Gemini 2.5 Flash. Si el volumen crece, `gemini-2.5-flash-lite` sale más
+ * Gemini 3.7 Flash. Si el volumen crece, `gemini-3.1-flash-lite` sale más
  * barato todavía y para una extracción tan acotada rinde parecido.
+ *
+ * Va con versión fija y no con el alias `gemini-flash-latest` a propósito: el
+ * alias nunca da 404 pero cambia de modelo bajo los pies, y acá la IA redacta
+ * texto que una persona aprueba antes de que salga a un vendedor — conviene que
+ * el comportamiento sea el mismo hoy que mañana.
+ *
+ * Ojo al cambiarlo: los modelos 2.5 siguen apareciendo en ListModels pero
+ * `generateContent` los rechaza con 404 en cuentas creadas después de su
+ * retiro. Que un modelo esté listado NO significa que la llave pueda usarlo;
+ * hay que probarlo con una llamada real.
  */
-const MODELO = "gemini-2.5-flash";
+const MODELO = "gemini-3.7-flash";
 
 /**
  * Tope de bytes crudos que viajan inline en una sola llamada. La API rechaza

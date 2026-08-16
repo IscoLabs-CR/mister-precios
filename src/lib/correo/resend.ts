@@ -10,6 +10,15 @@ import "server-only";
 
 const ENDPOINT = "https://api.resend.com/emails";
 
+/**
+ * Sin esto, un cuelgue de Resend (no un error, un cuelgue) se come el
+ * `maxDuration` completo de la función. En `/api/cron/alertas` los envíos
+ * corren en un `for` secuencial: un solo POST que nunca responde deja sin
+ * procesar todos los leads que faltaban en esa corrida, no solo el que estaba
+ * en curso.
+ */
+const TIMEOUT_MS = 15000;
+
 export type Correo = {
   para: string | string[];
   copia?: string | string[];
@@ -64,6 +73,7 @@ export async function enviarCorreo(correo: Correo): Promise<ResultadoEnvio> {
   try {
     const respuesta = await fetch(ENDPOINT, {
       method: "POST",
+      signal: AbortSignal.timeout(TIMEOUT_MS),
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
