@@ -47,6 +47,29 @@ const MAX_FICHAS = 3;
 type Sugerencia = { type?: string; title?: string; link?: string };
 type Ficha = { titulo: string; url: string };
 
+/**
+ * El `link` de cada sugerencia lo elige el servidor del catálogo, y después
+ * nosotros lo abrimos con `fetch` desde el backend. Eso es exactamente la forma
+ * de un SSRF de segundo orden: si ese WordPress se compromete —o simplemente si
+ * alguien logra colar una entrada con un link raro— podría apuntarnos a
+ * `http://169.254.169.254/` o a un servicio interno, y la petición saldría con
+ * la identidad de nuestra función.
+ *
+ * Por eso solo se sigue lo que cae en el mismo origen que ya decidimos
+ * consultar. `new URL(link, BASE)` además resuelve los relativos, que es como
+ * el buscador devuelve algunos.
+ */
+function urlDelCatalogo(link: unknown): string | null {
+  if (typeof link !== "string" || !link) return null;
+
+  try {
+    const url = new URL(link, BASE);
+    return url.origin === new URL(BASE).origin ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Devuelve null ante cualquier fallo. Nunca lanza: ver el contrato en `catalogo.ts`. */
 async function traer(url: string): Promise<string | null> {
   try {
@@ -91,9 +114,13 @@ async function buscarFichas(termino: string): Promise<Ficha[]> {
   if (!Array.isArray(datos)) return [];
 
   return (datos as Sugerencia[])
-    .filter((s) => s.type === "producto" && typeof s.link === "string")
-    .slice(0, MAX_FICHAS)
-    .map((s) => ({ titulo: String(s.title ?? "").trim(), url: String(s.link) }));
+    .filter((s) => s.type === "producto")
+    .map((s) => ({
+      titulo: String(s.title ?? "").trim(),
+      url: urlDelCatalogo(s.link),
+    }))
+    .filter((ficha): ficha is Ficha => ficha.url !== null)
+    .slice(0, MAX_FICHAS);
 }
 
 /**

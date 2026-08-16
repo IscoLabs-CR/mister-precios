@@ -1,6 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizarProducto } from "@/lib/ia";
+import { consumir, identificarCliente } from "@/lib/limite";
 import { subirFotos, type FotoValidada } from "@/lib/storage";
 import { procesarLeadNuevo } from "@/lib/flujo/procesar";
 import { esCategoriaProducto } from "@/lib/tipos";
@@ -30,11 +31,36 @@ export const maxDuration = 60;
 const MAX_LARGO_TEXTO = 2000;
 const MAX_LARGO_CAMPO = 200;
 
+/**
+ * Techo de solicitudes por IP. Una persona manda una y se va; el margen cubre
+ * al que se equivoca, corrige y reintenta un par de veces. Todo lo que pase de
+ * ahí en diez minutos no es un cliente.
+ *
+ * Ojo: es un límite por instancia, no global. Ver el alcance en `lib/limite.ts`.
+ */
+const MAX_SOLICITUDES = 5;
+const VENTANA_MS = 10 * 60 * 1000;
+
 function malaSolicitud(mensaje: string) {
   return NextResponse.json({ error: mensaje }, { status: 400 });
 }
 
 export async function POST(request: Request) {
+  // Antes de leer el cuerpo: si se rechaza igual, no tiene sentido pagar el
+  // parseo de un multipart con una foto adentro.
+  const limite = consumir(
+    `leads:${identificarCliente(request)}`,
+    MAX_SOLICITUDES,
+    VENTANA_MS,
+  );
+
+  if (!limite.permitido) {
+    return NextResponse.json(
+      { error: "Recibimos varias solicitudes tuyas. Esperá unos minutos e intentá de nuevo." },
+      { status: 429, headers: { "Retry-After": String(limite.reintentarEn) } },
+    );
+  }
+
   let datos: FormData;
   try {
     datos = await request.formData();

@@ -5,10 +5,18 @@ build
 
 .env
 .env*.local
+# `.env*.local` solo cubre nombres que TERMINAN en .local, así que una copia como
+# .env.local.backup-lo-que-sea queda fuera y se cuela en un `git add -A`.
+.env.local.*
 
 npm-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+
+# Copias a medio guardar que dejan los editores (NuevoVendedor.tsx.tmp.4920.abc).
+# Mismo motivo que la regla de los .env de arriba: son archivos con contenido
+# real del proyecto que un `git add -A` se lleva sin que nadie los mire.
+*.tmp.*
 
 .DS_Store
 *.pem
