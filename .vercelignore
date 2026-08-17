@@ -1,0 +1,18 @@
+# Qué NO se sube a Vercel.
+#
+# Lo importante son los .env: las variables reales viven en el proyecto de
+# Vercel, y si un .env.local viajara en el paquete, Next lo cargaría durante el
+# build y pisaría esos valores — entre ellos NEXT_PUBLIC_SITE_URL, que en local
+# apunta a localhost y dejaría los enlaces de los correos rotos en producción.
+# Mismo criterio que en .gitignore: `.env*.local` no cubre una copia como
+# .env.local.backup-lo-que-sea, así que va la regla aparte.
+.env
+.env*.local
+.env.local.*
+
+# Artefactos y dependencias: Vercel instala y compila del lado del servidor.
+node_modules
+.next
+.vercel
+tsconfig.tsbuildinfo
+.git
