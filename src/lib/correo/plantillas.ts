@@ -134,6 +134,15 @@ function describirProducto(lead: Lead): string {
 export function resumenDeRespaldo(lead: Lead): string {
   const producto = describirProducto(lead);
 
+  // El precio que vio el cliente es obligatorio en el formulario, así que en la
+  // práctica siempre está; el `null` cubre los leads viejos. Va en el párrafo y
+  // no solo en la tabla de abajo porque es el número que la tienda tiene que
+  // mejorar, igual que se lo pedimos al modelo en `INSTRUCCIONES_RESUMEN`.
+  const precioVisto =
+    lead.precio_visto !== null
+      ? ` Lo vio en ${formatearMoneda(lead.precio_visto, lead.moneda)}.`
+      : "";
+
   const precio =
     lead.precio_a_vencer !== null
       ? ` El precio a vencer es ${formatearMoneda(lead.precio_a_vencer, "CRC")}.`
@@ -145,6 +154,7 @@ export function resumenDeRespaldo(lead: Lead): string {
 
   return (
     `Un cliente nos pidió ayuda para conseguir un mejor precio en ${producto}.` +
+    precioVisto +
     precio +
     flexibilidad +
     " Si podés mejorarlo, respondé este correo con tu cotización."

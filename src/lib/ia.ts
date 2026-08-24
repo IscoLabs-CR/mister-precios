@@ -382,6 +382,7 @@ FORMATO:
 
 QUÉ DECIR:
 - Qué producto busca el cliente, con el detalle que exista (marca, modelo, variante, capacidad).
+- SIEMPRE el precio que el cliente vio por su cuenta, con su moneda y tal cual viene en la ficha, sin recalcularlo ni redondearlo. Lo escribió el cliente en el formulario y es el número que la tienda tiene que mejorar, así que nunca lo omitas. Lo único que te exime es que la ficha diga que no lo dijo.
 - Si te dan un precio a vencer, mencionalo tal cual, sin recalcularlo ni redondearlo.
 - Si el cliente acepta opciones similares o si quiere solo ese modelo exacto.
 - Cerrá invitando a responder con la cotización.
